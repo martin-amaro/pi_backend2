@@ -1,5 +1,13 @@
 # Endpoints
 
-/test
-/auth/login
-/auth/register
+```text
+[GET] /test
+```
+
+```text
+[POST] /auth/login
+```
+
+```text
+[POST] /auth/register
+```
