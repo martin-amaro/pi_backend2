@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.pib2.model.dto.UserLoginDTO;
 import com.example.pib2.model.dto.UserLoginResponseDTO;
 import com.example.pib2.model.dto.UserRegisterDTO;
-// import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.User;
 import com.example.pib2.model.entity.UserRole;
 import com.example.pib2.security.TokenService;
