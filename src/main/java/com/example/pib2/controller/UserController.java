@@ -17,9 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.pib2.model.dto.UserLoginDTO;
 import com.example.pib2.model.dto.UserLoginResponseDTO;
 import com.example.pib2.model.dto.UserRegisterDTO;
-// import com.example.pib2.model.entity.Business;
+import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.User;
 import com.example.pib2.model.entity.UserRole;
+import com.example.pib2.repository.BusinessRepository;
 import com.example.pib2.security.TokenService;
 import com.example.pib2.service.UserService;
 
@@ -35,8 +36,8 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-   // @Autowired
-    //private BusinessRepository businessRepository;
+    @Autowired
+    private BusinessRepository businessRepository;
 
     @Autowired
     private TokenService tokenService;
@@ -60,22 +61,21 @@ public class UserController {
         }
 
         // Crear el negocio vacío
-        // Business emptyBusiness = new Business();
-        // emptyBusiness.setName(""); // o null si prefieres
-        // Business savedBusiness = businessRepository.save(emptyBusiness);
+        Business emptyBusiness = new Business();
+        emptyBusiness.setName(""); // o null si prefieres
+        Business savedBusiness = businessRepository.save(emptyBusiness);
 
         // Crear el usuario y asociar el negocio
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setPassword(passwordEncoder.encode(password));
         newUser.setName(name);
-        // newUser.setBusiness();
+        newUser.setBusiness(savedBusiness);
         newUser.setRole(UserRole.ADMIN);
 
         User savedUser = userService.save(newUser);
         return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
-
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO request) {
