@@ -42,9 +42,6 @@ Para instalar y ejecutar el proyecto en tu máquina local, sigue estos pasos:
 
 
 
-    ##############################################################################################################################
-
-
     # UNA VEZ TENGAS YA EL PROYECTO  EN TU EQUIPO TE DEBERIAN SALIR ESTOS DATOS  
 
 
@@ -54,18 +51,98 @@ Para instalar y ejecutar el proyecto en tu máquina local, sigue estos pasos:
 
 ### Recurso principal
 **Producto**  
-Atributos minimos:
-- `id`
-- `nombre`
-- `descripcion`
-- `precio`
-- `stock`
-- `categoriaId`
-- `activo`
+#### Negocio:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del negocio |
+| `nombre` | String | Nombre del negocio |
+| `direccion` | String | Dirección de la empresa |
+
+#### Usuario:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del usuario |
+| `nombre` | String | Nombre del usuario |
+| `email` | String | Correo electrónico, usado para login |
+| `password` | String | Contraseña cifrada del usuario |
+| `rolId`| UUID | ID del rol de usuario (ej. `ADMIN`, `EMPLOYEE`) |
+| `businessId`| UUID | ID del negocio al que pertenece |
+
+#### Rol:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del rol |
+| `nombre`| Enum | Nombre del rol (ej. `ADMIN`, `EMPLOYEE`) |
+
+#### Categoría:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único de la categoría |
+| `nombre` | String | Nombre de la categoría |
+| `descripcion` | String | Descripción de la categoría |
+
+#### Proveedor:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del proveedor |
+| `nombre` | String | Nombre del proveedor |
+| `email` | String | Correo electrónico de contacto |
+| `telefono` | String | Teléfono de contacto |
+| `direccion` | String | Dirección del proveedor |
+
+#### Producto:      
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del producto |
+| `nombre` | String | Nombre del producto |
+| `descripcion` | String | Descripción detallada |
+| `precio` | Double | Precio de venta del producto |
+| `stock` | Integer | Cantidad disponible en inventario |
+| `categoriaId` | UUID | ID de la categoría a la que pertenece |
+| `businessId` | UUID | ID del negocio al que pertenece |
+| `proveedorId` | UUID | ID del proveedor del producto |
+| `activo` | Boolean | Indica si el producto está visible |
+
+#### Orden:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único de la orden |
+| `fecha` | Date | Fecha y hora de la orden |
+| `estado` | Enum | Estado de la orden (ej. `PENDING`, `COMPLETED`, `CANCELED`) |
+| `total` | Double | Total de la orden |
+| `userId` | UUID | ID del usuario que realizó la orden |
+| `businessId` | UUID | ID del negocio que gestiona la orden |
+
+#### Detalle de Orden:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del detalle |
+| `ordenId` | UUID | ID de la orden a la que pertenece |
+| `productoId` | UUID | ID del producto en la orden |
+| `cantidad` | Integer | Cantidad del producto comprado |
+| `precioUnitario`| Double | Precio del producto al momento de la compra |
+
+#### Movimiento de Stock:
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del movimiento |
+| `fecha` | Date | Fecha del movimiento |
+| `tipo` | Enum | Tipo de movimiento (ej. `INBOUND`, `OUTBOUND`, `ADJUSTMENT`) |
+| `cantidad`| Integer | Cantidad de stock añadida o retirada |
+| `productoId`| UUID | ID del producto afectado |
+| `userId` | UUID | Usuario que realizó el movimiento |
+| `descripcion`| String | Razón del movimiento |
+
+
+
 
 ### Relaciones
-- Una categoría tiene muchos productos.
-- Cada producto pertenece a una categoría.
+- Un **Negocio** tiene muchos **Productos**, **Usuarios** y **Órdenes**.
+- Un **Usuario** pertenece a un solo **Negocio**, y tiene un **Rol**.
+- Un **Producto** pertenece a un **Negocio**, una **Categoría** y un **Proveedor**, y tiene muchos **Movimientos de Stock**.
+- Una **Orden** pertenece a un **Usuario** y un **Negocio**, y tiene muchos **Detalles de Orden**.
+- Un **Detalle de Orden** pertenece a una **Orden** y a un **Producto**.
+- Un **Movimiento de Stock** pertenece a un **Producto** y a un **Usuario**.
 
 ---
 
@@ -101,8 +178,43 @@ Atributos minimos:
 
 ##  Fase 3 – Diagrama de Secuencia
 
-*(Pendiente de añadir)*
 
+sequenceDiagram
+    participant Cliente
+    participant ProductoController
+    participant ProductoService
+    participant ProductoRepository
+
+    %% POST /productos
+    Cliente->>ProductoController: POST /productos
+    ProductoController->>ProductoService: crear(productoRequest)
+    ProductoService->>ProductoService: validarDatos()
+    ProductoService->>ProductoRepository: save(producto)
+    ProductoRepository-->>ProductoService: productoEntity
+    ProductoService-->>ProductoController: productoResponse
+    ProductoController-->>Cliente: 201 Created + Location
+
+    %% GET /productos
+    Cliente->>ProductoController: GET /productos
+    ProductoController->>ProductoService: listar()
+    ProductoService-->>ProductoController: listaProductos
+    ProductoController-->>Cliente: 200 OK
+
+    %% GET /productos/{id}
+    Cliente->>ProductoController: GET /productos/{id}
+    ProductoController->>ProductoService: obtenerPorId(id)
+    ProductoService->>ProductoRepository: findById(id)
+    ProductoRepository-->>ProductoService: productoEntity
+    ProductoService-->>ProductoController: productoResponse
+    ProductoController-->>Cliente: 200 OK / 404 Not Found
+
+    %% PUT /productos/{id}
+    Cliente->>ProductoController: PUT /productos/{id}
+    ProductoController->>ProductoService: actualizar(id, productoRequest)
+    ProductoService->>ProductoRepository: save(producto)
+    ProductoRepository-->>ProductoService: productoEntity
+    ProductoService-->>ProductoController: productoResponse
+    ProductoController-->>Cliente: 200 OK / 404 Not Found
 ---
 
 ##  Mock de Respuesta JSON
@@ -116,3 +228,52 @@ Atributos minimos:
   "categoriaId": 2,
   "activo": true
 }
+
+
+# 📦 API de Productos
+
+Este proyecto gestiona productos con operaciones de creación, lectura y actualización, siguiendo una arquitectura MVC.
+
+---
+
+## 📑 Endpoints
+
+| Endpoint           | Método | Descripción                | Código Éxito               | Código Error     |
+|--------------------|--------|----------------------------|-----------------------------|------------------|
+| `/productos`       | GET    | Listar todos los productos | `200 OK`                    | -                |
+| `/productos`       | POST   | Crear nuevo producto       | `201 Created + Location`    | `400 Bad Request`|
+| `/productos/{id}`  | GET    | Obtener producto por ID    | `200 OK`                    | `404 Not Found`  |
+| `/productos/{id}`  | PUT    | Actualizar producto        | `200 OK`                    | `404 Not Found`  |
+
+---
+
+## 📊 Diagrama de flujo de Endpoints
+
+```mermaid
+flowchart TD
+    A[Inicio API Productos] -->|GET /productos| B[Listar todos los productos]
+    B --> B1[200 OK]
+
+    A -->|POST /productos| C{Validar datos}
+    C -->|Datos válidos| C1[201 Created + Location]
+    C -->|Datos inválidos| C2[400 Bad Request]
+
+    A -->|GET /productos/{id}| D{Producto existe?}
+    D -->|Sí| D1[200 OK]
+    D -->|No| D2[404 Not Found]
+
+    A -->|PUT /productos/{id}| E{Producto existe?}
+    E -->|Sí| E1[200 OK]
+    E -->|No| E2[404 Not Found]
+
+
+
+
+
+
+############################################################################################
+
+
+
+
+
