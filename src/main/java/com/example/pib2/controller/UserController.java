@@ -57,7 +57,7 @@ public class UserController {
         String name = request.getName();
 
         if (userService.existsByEmail(email)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("El correo ya está registrado");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "El correo ya está registrado"));
         }
 
         // Crear el negocio vacío

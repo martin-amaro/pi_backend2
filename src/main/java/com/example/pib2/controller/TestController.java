@@ -16,7 +16,7 @@ public class TestController {
     @GetMapping
     public Map<String, String> test() {
 
-        return Map.of("test", "ok");
+        return Map.of("test", "example");
         
     }
     
