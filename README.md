@@ -316,9 +316,7 @@ flowchart TD
     A -->|PUT /productos/{id}| E{Producto existe?}
     E -->|Sí| E1[200 OK]
     E -->|No| E2[404 Not Found]
-
-
-## Diagrama de flijo de Endpoints
+```
 
 ### Autenticacion
 
