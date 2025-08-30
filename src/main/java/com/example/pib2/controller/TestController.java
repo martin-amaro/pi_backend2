@@ -17,6 +17,7 @@ public class TestController {
     public Map<String, String> test() {
 
         return Map.of("test", "ok");
+        
     }
     
 }

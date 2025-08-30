@@ -35,7 +35,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             
                 // Públicos
-                .requestMatchers("/", "/auth/**", "/ping", "/test", "/actuator/**").permitAll()
+                .requestMatchers("/", "/auth/**", "/ping", "/test", "/actuator/**", "/seed").permitAll()
 
                 // Privados
                 .requestMatchers("/users/**", "/inventory/**", "/business/**", "/personal/**", "/dashboard/**").authenticated()
