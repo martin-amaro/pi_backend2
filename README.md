@@ -160,8 +160,11 @@ Para instalar y ejecutar el proyecto en tu máquina local, sigue estos pasos:
 
 ### Endpoints
 
+<<<<<<< HEAD
 ### Productos
 
+=======
+>>>>>>> 0210b911a61ff8dba5628d3d8799a19db818cfb1
 | Endpoint           | Método | Descripción                | Código Éxito     | Código Error |
 |--------------------|--------|----------------------------|------------------|--------------|
 | `/productos`       | GET    | Listar todos los productos | `200 OK`         | -            |
@@ -171,6 +174,7 @@ Para instalar y ejecutar el proyecto en tu máquina local, sigue estos pasos:
 
 ---
 
+<<<<<<< HEAD
 ### Autenticacion
 
 | Endpoint         | Método | Descripción                    | Código Éxito                   | Código Error                                                               |
@@ -179,6 +183,8 @@ Para instalar y ejecutar el proyecto en tu máquina local, sigue estos pasos:
 | `/auth/login`    | POST   | Iniciar sesión (obtener token) | `200 OK` (JWT Token)           | `401 Unauthorized` (credenciales inválidas)<br>`500 Internal Server Error` |
 
 
+=======
+>>>>>>> 0210b911a61ff8dba5628d3d8799a19db818cfb1
 ### Reglas de negocio
 1. Un producto no puede tener un stock negativo.
 2. El nombre del producto debe ser único dentro de la categoría.
@@ -227,6 +233,7 @@ sequenceDiagram
     ProductoController-->>Cliente: 200 OK / 404 Not Found
 ---
 
+<<<<<<< HEAD
 ## Autenticacion
 sequenceDiagram
     actor Cliente
@@ -258,6 +265,8 @@ sequenceDiagram
     end
 
 
+=======
+>>>>>>> 0210b911a61ff8dba5628d3d8799a19db818cfb1
 ##  Mock de Respuesta JSON
 ```json
 {
@@ -269,7 +278,10 @@ sequenceDiagram
   "categoriaId": 2,
   "activo": true
 }
+<<<<<<< HEAD
 ```
+=======
+>>>>>>> 0210b911a61ff8dba5628d3d8799a19db818cfb1
 
 
 # 📦 API de Productos
@@ -279,7 +291,10 @@ Este proyecto gestiona productos con operaciones de creación, lectura y actuali
 ---
 
 ## 📑 Endpoints
+<<<<<<< HEAD
 ### Productos 
+=======
+>>>>>>> 0210b911a61ff8dba5628d3d8799a19db818cfb1
 
 | Endpoint           | Método | Descripción                | Código Éxito               | Código Error     |
 |--------------------|--------|----------------------------|-----------------------------|------------------|
@@ -289,6 +304,7 @@ Este proyecto gestiona productos con operaciones de creación, lectura y actuali
 | `/productos/{id}`  | PUT    | Actualizar producto        | `200 OK`                    | `404 Not Found`  |
 
 ---
+<<<<<<< HEAD
 ### Autenticacion
 
 | Endpoint         | Método | Descripción                    | Código Éxito                   | Código Error                                                               |
@@ -297,6 +313,8 @@ Este proyecto gestiona productos con operaciones de creación, lectura y actuali
 | `/auth/login`    | POST   | Iniciar sesión (obtener token) | `200 OK` (JWT Token)           | `401 Unauthorized` (credenciales inválidas)<br>`500 Internal Server Error` |
 
 
+=======
+>>>>>>> 0210b911a61ff8dba5628d3d8799a19db818cfb1
 
 ## 📊 Diagrama de flujo de Endpoints
 
@@ -316,6 +334,7 @@ flowchart TD
     A -->|PUT /productos/{id}| E{Producto existe?}
     E -->|Sí| E1[200 OK]
     E -->|No| E2[404 Not Found]
+<<<<<<< HEAD
 ```
 
 ### Autenticacion
@@ -330,6 +349,16 @@ flowchart TD
     C -->|Sí| C1[200 OK + {"token": "JWT"}]
     C -->|No (BadCredentials)| C2[401 Unauthorized: "Credenciales incorrectas"]
     C -->|Error interno| C3[500 Internal Server Error]
+=======
+
+
+
+
+
+
+############################################################################################
+
+>>>>>>> 0210b911a61ff8dba5628d3d8799a19db818cfb1
 
 
 
