@@ -35,9 +35,21 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             
                 // Públicos
-                .requestMatchers("/", "/auth/**", "/ping", "/test", "/actuator/**", "/seed", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/", "/ping", "/test", "/actuator/**", "/seed").permitAll()
+
+                // Endpoints de Swagger/OpenAPI (públicos)
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/swagger-ui.html").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-resources/**").permitAll()
+                .requestMatchers("/webjars/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                
 
                 // Privados
+
+                .requestMatchers("/auth/**").permitAll()
+
                 .requestMatchers("/users/**", "/inventory/**", "/business/**", "/personal/**", "/dashboard/**").authenticated()
 
                 // Todo lo demás

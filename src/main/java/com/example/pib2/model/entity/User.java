@@ -58,7 +58,23 @@ public class User implements UserDetails {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column
+    private String provider;
+
+    @Column
+    private String providerId;
+
+    @Column(nullable = false)
+    private boolean accountNonExpired = true;
+    
+    @Column(nullable = false)
+    private boolean accountNonLocked = true;
+    
+    @Column(nullable = false)
+    private boolean credentialsNonExpired = true;
+
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> roles = new ArrayList<>();
         roles.add(new SimpleGrantedAuthority("ROLE_USER"));
@@ -80,24 +96,27 @@ public class User implements UserDetails {
         return password;
     }
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return credentialsNonExpired;
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
 }

@@ -1,5 +1,7 @@
 package com.example.pib2.controller;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +26,15 @@ import com.example.pib2.repository.BusinessRepository;
 import com.example.pib2.security.TokenService;
 import com.example.pib2.service.UserService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Usuarios", description = "API para gestión de usuarios del sistema")
+@SecurityRequirement(name = "basicAuth")
+
 public class UserController {
 
     @Autowired
@@ -62,7 +69,7 @@ public class UserController {
 
         // Crear el negocio vacío
         Business emptyBusiness = new Business();
-        emptyBusiness.setName(""); // o null si prefieres
+        emptyBusiness.setName("");
         Business savedBusiness = businessRepository.save(emptyBusiness);
 
         // Crear el usuario y asociar el negocio
@@ -93,11 +100,68 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Credenciales incorrectas"));
         } catch (Exception e) {
-            System.out.println("*+++++++++++++++++++++++");
             System.out.println(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Ocurrió un error inesperado"));
         }
 
     }
+
+    @PostMapping("/oauth")
+    public ResponseEntity<?> loginFromProvider(@RequestBody Map<String, Object> request) {
+        String email = (String) request.get("email");
+        String name = (String) request.get("name");
+        String provider = (String) request.get("provider");
+        String providerId = (String) request.get("providerId");
+
+        try {
+            // Ya existe un usuario con ese providerId
+            User user = userService.findByProviderId(providerId).orElse(null);
+
+            if (user == null) {
+                // Existe por email
+                user = userService.findByEmail(email).orElse(null);
+
+                if (user == null) {
+                    // Si no existe, crearlo
+                    Business emptyBusiness = new Business();
+                    emptyBusiness.setName("");
+                    Business savedBusiness = businessRepository.save(emptyBusiness);
+
+                    user = new User();
+                    user.setEmail(email);
+                    user.setName(name);
+                    user.setPassword("null");
+                    user.setProvider(provider);
+                    user.setProviderId(providerId);
+                    user.setBusiness(savedBusiness);
+                    user.setRole(UserRole.USER);
+
+                    user = userService.save(user);
+                } else {
+                    // Existe por email → actualizarle provider info
+                    user.setProvider(provider);
+                    user.setProviderId(providerId);
+                    userService.save(user);
+                }
+            }
+
+            // 5. Generar token
+            String token = tokenService.generateToken(user.getEmail());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("id", user.getId());
+            response.put("email", user.getEmail());
+            response.put("name", user.getName());
+            response.put("roles", List.of(user.getRole().name()));
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error en OAuth login"));
+        }
+    }
+
 }

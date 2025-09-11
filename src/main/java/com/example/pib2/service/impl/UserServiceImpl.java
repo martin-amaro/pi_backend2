@@ -57,4 +57,10 @@ public class UserServiceImpl implements UserService {
     public void deleteAll() {
         userRepository.deleteAll();
     }
+
+    @Override
+    public Optional<User> findByProviderId(String providerId) {
+        return userRepository.findByProviderId(providerId);
+    }
+
 }

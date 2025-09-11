@@ -12,6 +12,10 @@ public interface UserService {
     User save(User user);
     boolean delete(Long id);
     boolean existsByEmail(String email);
+    
     Optional<User> findByEmail(String email);
+    Optional<User> findByProviderId(String providerId);
+
+
     void deleteAll();
 }
