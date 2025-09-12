@@ -89,13 +89,23 @@ public class UserController {
         try {
             String email = request.getEmail();
             String password = request.getPassword();
+            User user = userService.findByEmail(email).orElse(null);
+
+            String name = user.getName();
 
             var credentials = new UsernamePasswordAuthenticationToken(email, password);
             @SuppressWarnings("unused")
             var auth = this.authenticationManager.authenticate(credentials);
             String token = tokenService.generateToken(email);
 
-            return ResponseEntity.ok(new UserLoginResponseDTO(token));
+            return ResponseEntity.ok(new UserLoginResponseDTO(
+                name,
+                email,
+                user.getRole(),
+                user.getProvider(),
+                token
+            ));
+
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Credenciales incorrectas"));
@@ -154,7 +164,8 @@ public class UserController {
             response.put("id", user.getId());
             response.put("email", user.getEmail());
             response.put("name", user.getName());
-            response.put("roles", List.of(user.getRole().name()));
+            response.put("role", user.getRole());
+            response.put("provider", user.getProvider());
 
             return ResponseEntity.ok(response);
 

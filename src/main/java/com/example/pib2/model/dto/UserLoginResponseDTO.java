@@ -1,5 +1,7 @@
 package com.example.pib2.model.dto;
 
-public record UserLoginResponseDTO(String token) {
+import com.example.pib2.model.entity.UserRole;
+
+public record UserLoginResponseDTO(String name, String email, UserRole role, String provider, String token) {
     
 }
