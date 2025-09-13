@@ -1,7 +1,7 @@
 package com.example.pib2.model.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+// import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;

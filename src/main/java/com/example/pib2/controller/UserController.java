@@ -1,8 +1,8 @@
 package com.example.pib2.controller;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,13 +11,17 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
 
 import com.example.pib2.model.dto.UserLoginDTO;
 import com.example.pib2.model.dto.UserLoginResponseDTO;
+import com.example.pib2.model.dto.UserPatchDTO;
+import com.example.pib2.model.dto.UserPatchResponseDTO;
 import com.example.pib2.model.dto.UserRegisterDTO;
 import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.User;
@@ -91,7 +95,7 @@ public class UserController {
             String password = request.getPassword();
             User user = userService.findByEmail(email).orElse(null);
 
-            String name = user.getName();
+            // String name = user.getName();
 
             var credentials = new UsernamePasswordAuthenticationToken(email, password);
             @SuppressWarnings("unused")
@@ -99,7 +103,7 @@ public class UserController {
             String token = tokenService.generateToken(email);
 
             return ResponseEntity.ok(new UserLoginResponseDTO(
-                name,
+                user.getName(),
                 email,
                 user.getRole(),
                 user.getProvider(),
@@ -172,6 +176,40 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error en OAuth login"));
+        }
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<?> patchAuthenticatedUser(@RequestBody UserPatchDTO dto, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+        }
+
+        String email = authentication.getName();
+
+        try {
+            Optional<User> updatedUserOpt = userService.updatePartialByEmail(email, dto);
+            if (updatedUserOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            User updatedUser = updatedUserOpt.get();
+            String newToken = tokenService.generateToken(updatedUser.getEmail());
+
+            // Map<String, Object> response = new HashMap<>();
+            // response.put("user", updatedUser);
+            // response.put("token", newToken);
+
+            return ResponseEntity.ok(new UserPatchResponseDTO(
+                updatedUser.getName(),
+                updatedUser.getEmail(),
+                updatedUser.getRole(),
+                updatedUser.getProvider(),
+                newToken
+            ));
+
+        } catch (Exception e) {
+           return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
