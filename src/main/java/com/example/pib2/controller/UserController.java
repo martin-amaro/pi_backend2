@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -103,12 +104,11 @@ public class UserController {
             String token = tokenService.generateToken(email);
 
             return ResponseEntity.ok(new UserLoginResponseDTO(
-                user.getName(),
-                email,
-                user.getRole(),
-                user.getProvider(),
-                token
-            ));
+                    user.getName(),
+                    email,
+                    user.getRole(),
+                    user.getProvider(),
+                    token));
 
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -201,15 +201,40 @@ public class UserController {
             // response.put("token", newToken);
 
             return ResponseEntity.ok(new UserPatchResponseDTO(
-                updatedUser.getName(),
-                updatedUser.getEmail(),
-                updatedUser.getRole(),
-                updatedUser.getProvider(),
-                newToken
-            ));
+                    updatedUser.getName(),
+                    updatedUser.getEmail(),
+                    updatedUser.getRole(),
+                    updatedUser.getProvider(),
+                    newToken));
 
         } catch (Exception e) {
-           return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "No autenticado"));
+        }
+
+        User user = (User) authentication.getPrincipal();
+
+        try {
+            boolean deleted = userService.delete(user.getId());
+
+            if (!deleted) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Usuario no encontrado"));
+            }
+
+            // Si realmente se eliminó, no deberías devolver un nuevo token.
+            return ResponseEntity.noContent().build();
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "No se pudo eliminar la cuenta", "details", e.getMessage()));
         }
     }
 

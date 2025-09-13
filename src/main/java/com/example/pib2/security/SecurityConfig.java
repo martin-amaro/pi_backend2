@@ -37,7 +37,6 @@ public class SecurityConfig {
                 // Públicos
                 .requestMatchers("/", "/ping", "/test", "/actuator/**", "/seed").permitAll()
 
-                // Endpoints de Swagger/OpenAPI (públicos)
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
@@ -47,9 +46,7 @@ public class SecurityConfig {
                 
 
                 // Privados
-
                 .requestMatchers("/auth/**").permitAll()
-
                 .requestMatchers("/users/**", "/inventory/**", "/business/**", "/personal/**", "/dashboard/**").authenticated()
 
                 // Todo lo demás
