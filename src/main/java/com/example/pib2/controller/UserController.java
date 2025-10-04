@@ -108,7 +108,8 @@ public class UserController {
                     email,
                     user.getRole(),
                     user.getProvider(),
-                    token));
+                    token,
+                    user.getBusiness().getId()));
 
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

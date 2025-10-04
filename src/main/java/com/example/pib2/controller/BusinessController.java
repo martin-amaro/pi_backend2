@@ -2,6 +2,7 @@ package com.example.pib2.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.pib2.model.dto.BusinessDTO;
 import com.example.pib2.model.dto.BusinessResponseDTO;
 import com.example.pib2.model.dto.BussinesPatchDTO;
 import com.example.pib2.model.dto.UserDTO;
@@ -24,8 +26,7 @@ import com.example.pib2.model.entity.User;
 import com.example.pib2.model.entity.UserRole;
 import com.example.pib2.repository.UserRepository;
 import com.example.pib2.service.BusinessService;
-
-
+import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/business")
@@ -37,10 +38,27 @@ public class BusinessController {
     @Autowired
     private BusinessService businessService;
 
+    @PostMapping("/me")
+    public ResponseEntity<?> getBusiness(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+        }
+
+        User currentUser = (User) authentication.getPrincipal();
+        Business business = currentUser.getBusiness();
+        if (business == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "No se encontró la empresa asociada al usuario"));
+        }
+
+        return ResponseEntity.ok(BusinessDTO.fromEntity(business));
+
+    }
+
     @PatchMapping("/me")
     public ResponseEntity<?> patchAuthenticatedBusiness(@RequestBody BussinesPatchDTO dto,
             CouchbaseProperties.Authentication authentication) {
-        String email = ((Principal)authentication).getName();
+        String email = ((Principal) authentication).getName();
 
         try {
             Optional<Business> updatedBusinessOpt = businessService.updateByUserEmail(email, dto);
