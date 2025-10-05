@@ -1,13 +1,11 @@
 package com.example.pib2.controller;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,6 +24,8 @@ import com.example.pib2.model.entity.User;
 import com.example.pib2.model.entity.UserRole;
 import com.example.pib2.repository.UserRepository;
 import com.example.pib2.service.BusinessService;
+import com.example.pib2.util.AuthUtils;
+
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
@@ -39,28 +39,22 @@ public class BusinessController {
     private BusinessService businessService;
 
     @PostMapping("/me")
-    public ResponseEntity<?> getBusiness(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+    public ResponseEntity<?> getBusiness() {
+        try {
+            Business business = AuthUtils.getCurrentBusiness();
+            return ResponseEntity.ok(BusinessDTO.fromEntity(business));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         }
-
-        User currentUser = (User) authentication.getPrincipal();
-        Business business = currentUser.getBusiness();
-        if (business == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "No se encontró la empresa asociada al usuario"));
-        }
-
-        return ResponseEntity.ok(BusinessDTO.fromEntity(business));
 
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<?> patchAuthenticatedBusiness(@RequestBody BussinesPatchDTO dto,
-            CouchbaseProperties.Authentication authentication) {
-        String email = ((Principal) authentication).getName();
+    public ResponseEntity<?> patchAuthenticatedBusiness(@RequestBody BussinesPatchDTO dto) {
 
         try {
+            String email = AuthUtils.getCurrentEmail();
             Optional<Business> updatedBusinessOpt = businessService.updateByUserEmail(email, dto);
 
             if (updatedBusinessOpt.isEmpty()) {
@@ -71,10 +65,13 @@ public class BusinessController {
             BusinessResponseDTO responseDTO = BusinessResponseDTO.fromEntity(updatedBusiness);
 
             return ResponseEntity.ok(responseDTO);
-
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         }
+
     }
 
     @GetMapping("/users")
