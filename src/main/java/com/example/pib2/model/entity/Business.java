@@ -30,6 +30,9 @@ public class Business {
     @JsonManagedReference
     private List<User> users;
 
+    @OneToOne(mappedBy = "business", cascade = CascadeType.ALL)
+    private Subscription subscription;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

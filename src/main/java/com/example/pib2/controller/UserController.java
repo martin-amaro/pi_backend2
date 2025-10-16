@@ -19,18 +19,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 
+import com.example.pib2.model.dto.UserDTO;
 import com.example.pib2.model.dto.UserLoginDTO;
 import com.example.pib2.model.dto.UserLoginResponseDTO;
 import com.example.pib2.model.dto.UserPatchDTO;
 import com.example.pib2.model.dto.UserPatchResponseDTO;
 import com.example.pib2.model.dto.UserRegisterDTO;
 import com.example.pib2.model.entity.Business;
+import com.example.pib2.model.entity.Subscription;
 import com.example.pib2.model.entity.User;
 import com.example.pib2.model.entity.UserRole;
 import com.example.pib2.repository.BusinessRepository;
 import com.example.pib2.security.TokenService;
+import com.example.pib2.service.SubscriptionService;
 import com.example.pib2.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -38,7 +46,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Usuarios", description = "API para gestión de usuarios del sistema")
-@SecurityRequirement(name = "basicAuth")
+@SecurityRequirement(name = "bearerAuth")
 
 public class UserController {
 
@@ -53,6 +61,9 @@ public class UserController {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -99,17 +110,34 @@ public class UserController {
             // String name = user.getName();
 
             var credentials = new UsernamePasswordAuthenticationToken(email, password);
-            @SuppressWarnings("unused")
-            var auth = this.authenticationManager.authenticate(credentials);
+            authenticationManager.authenticate(credentials);
+
             String token = tokenService.generateToken(email);
 
+            Business business = user.getBusiness();
+
+            // Buscar la subscripción activa
+            Subscription subscription = null;
+
+            if (business != null) {
+                subscription = subscriptionService.findActiveByBusinessId(business.getId())
+                        .orElse(null);
+            }
+
+            // Preparar datos de suscripción
+            String planName = (subscription != null) ? subscription.getPlanName() : "free";
+            String status = (subscription != null) ? subscription.getStatus() : "INACTIVE";
+
             return ResponseEntity.ok(new UserLoginResponseDTO(
+                    user.getId(),
                     user.getName(),
                     email,
                     user.getRole(),
                     user.getProvider(),
                     token,
-                    user.getBusiness().getId()));
+                    user.getBusiness().getId(),
+                    planName,
+                    status));
 
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -181,6 +209,28 @@ public class UserController {
     }
 
     @PatchMapping("/me")
+    @Operation(
+        summary = "Obtener todos los usuarios",
+        description = "Retorna una lista de todos los usuarios registrados en el sistema. Requiere rol ADMIN."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Lista de usuarios obtenida exitosamente",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = UserDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401", 
+            description = "No autenticado - Credenciales requeridas"
+        ),
+        @ApiResponse(
+            responseCode = "403", 
+            description = "Acceso denegado - Requiere rol ADMIN"
+        )
+    })
     public ResponseEntity<?> patchAuthenticatedUser(@RequestBody UserPatchDTO dto, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
