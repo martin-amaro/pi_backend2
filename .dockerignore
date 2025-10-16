@@ -1,0 +1,35 @@
+# Archivos de desarrollo
+.git
+.gitignore
+README.md
+.env
+.env.local
+.env.*.local
+
+# Directorios de build
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentación
+doc/
+
+# Scripts de prueba
+test-endpoints.ps1
+
+# Archivos temporales
+*.tmp
+*.temp
