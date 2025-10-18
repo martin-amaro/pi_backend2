@@ -29,44 +29,48 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-            
-                // Públicos
-                .requestMatchers("/", "/ping", "/test/**", "/actuator/**", "/seed", "/users").permitAll()
+                .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
 
-                .requestMatchers("/swagger-ui/**").permitAll()
-                .requestMatchers("/swagger-ui.html").permitAll()
-                .requestMatchers("/v3/api-docs/**").permitAll()
-                .requestMatchers("/swagger-resources/**").permitAll()
-                .requestMatchers("/webjars/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/docs/**").permitAll()
-                
-                .requestMatchers("/auth/**", "/subscriptions/**").permitAll()
+                        // Públicos
+                        .requestMatchers("/", "/ping", "/test/**", "/actuator/**", "/seed", "/users").permitAll()
 
-                // Privados
-                .requestMatchers("/users/**", "/inventory/**", "/business/**", "/personal/**", "/dashboard/**").authenticated()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/docs/**").permitAll()
 
-                // Todo lo demás
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+                        .requestMatchers("/auth/**", "/subscriptions/**").permitAll()
+
+                        // Privados
+                        .requestMatchers("/users/**", "/inventory/**", "/business/**", "/personal/**", "/dashboard/**")
+                        .authenticated()
+
+                        // Todo lo demás
+                        .anyRequest().authenticated())
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("*");
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://192.168.1.4:5173", "https://pi-web2.vercel.app"));
+        // config.addAllowedOriginPattern("*");
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://192.168.1.4:5173",
+                "https://pi-web2.vercel.app"));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
