@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -32,6 +34,11 @@ public class Category {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "business_id", nullable = false)
+    @JsonIgnore
+    private Business business;
 
     // @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<Product> products;
