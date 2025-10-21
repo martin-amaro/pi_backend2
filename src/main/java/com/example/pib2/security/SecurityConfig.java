@@ -35,21 +35,19 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             
                 // Públicos
-                .requestMatchers("/", "/ping", "/test", "/actuator/**", "/seed").permitAll()
+                .requestMatchers("/", "/ping", "/test/**", "/actuator/**", "/seed", "/users").permitAll()
 
-                // Endpoints de Swagger/OpenAPI (públicos)
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/docs/**").permitAll()
                 
+                .requestMatchers("/auth/**", "/subscriptions/**").permitAll()
 
                 // Privados
-
-                .requestMatchers("/auth/**").permitAll()
-
                 .requestMatchers("/users/**", "/inventory/**", "/business/**", "/personal/**", "/dashboard/**").authenticated()
 
                 // Todo lo demás
@@ -65,7 +63,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOriginPattern("*");
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://192.168.1.4:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://192.168.1.4:5173", "https://pi-web2.vercel.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(false);
