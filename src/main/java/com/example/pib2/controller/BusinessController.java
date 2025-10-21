@@ -25,10 +25,13 @@ import com.example.pib2.model.entity.UserRole;
 import com.example.pib2.repository.UserRepository;
 import com.example.pib2.service.BusinessService;
 
-
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/business")
+@Tag(name = "Empresas", description = "Gestión de la información y configuración de la entidad de negocio asociada al usuario.")
+@SecurityRequirement(name = "bearerAuth")
 public class BusinessController {
 
     @Autowired
@@ -40,7 +43,7 @@ public class BusinessController {
     @PatchMapping("/me")
     public ResponseEntity<?> patchAuthenticatedBusiness(@RequestBody BussinesPatchDTO dto,
             CouchbaseProperties.Authentication authentication) {
-        String email = ((Principal)authentication).getName();
+        String email = ((Principal) authentication).getName();
 
         try {
             Optional<Business> updatedBusinessOpt = businessService.updateByUserEmail(email, dto);
