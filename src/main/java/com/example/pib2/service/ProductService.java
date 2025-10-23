@@ -20,4 +20,6 @@ public interface ProductService {
     void deleteProduct(Long id);
 
     long countProducts();
+
+    //Product createProductWithImages(ProductRequestDTO request, MultipartFile[] images, Business business);
 }

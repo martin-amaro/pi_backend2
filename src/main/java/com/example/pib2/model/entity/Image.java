@@ -1,33 +1,33 @@
 package com.example.pib2.model.entity;
 
 import java.time.LocalDateTime;
-// import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "categories")
-public class Category {
-    
+@Table(name = "images")
+public class Image {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
-
-    @Column(nullable = true)
-    private String description;
-
     @Column(nullable = false)
-    private boolean active;
+    private String url;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -40,7 +40,8 @@ public class Category {
     @JsonIgnore
     private Business business;
 
-    // @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    // private List<Product> products;
-
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnore
+    private Product product;
 }
