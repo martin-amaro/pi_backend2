@@ -39,8 +39,6 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItem> items;
 
-    // --- Getters y Setters ---
-
     public Long getId() {
         return id;
     }

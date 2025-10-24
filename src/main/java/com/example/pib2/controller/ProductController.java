@@ -22,10 +22,14 @@ import com.example.pib2.model.entity.UserRole;
 import com.example.pib2.service.ProductService;
 import com.example.pib2.service.impl.ProductServiceImpl;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/products")
+@Tag(name = "gestion de  productos", description = "Endpoints para crear,consultar, actualizar y eliminar productos . Autenticacion Obligatoria")
+@SecurityRequirement(name = "basicAuth")
 public class ProductController {
 
     // @Autowired
@@ -47,14 +51,16 @@ public class ProductController {
         User currentUser = (User) authentication.getPrincipal();
 
         if (currentUser.getRole() != UserRole.ADMIN) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo administradores pueden acceder"));
-            
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Solo administradores pueden acceder"));
+
         }
 
         Business business = currentUser.getBusiness();
 
         if (business == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "No se encontró la empresa asociada al usuario"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "No se encontró la empresa asociada al usuario"));
         }
 
         Product product = productService.createProduct(request, business);

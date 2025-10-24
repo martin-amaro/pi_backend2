@@ -1,5 +1,7 @@
 package com.example.pib2.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -7,18 +9,17 @@ import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.Category;
 import com.example.pib2.model.entity.Product;
 import com.example.pib2.model.entity.User;
-
 import com.example.pib2.repository.BusinessRepository;
 import com.example.pib2.repository.CategoryRepository;
 import com.example.pib2.repository.ProductRepository;
 import com.example.pib2.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/seed")
+@Tag(name = "Data-Controller", description = "Este se utiliza para insertar datos de prueba en la DATABASE consultando datos estáticos y de configuración ( categorías, roles,etc)")
 public class DataController {
-
 
     @Autowired
     private UserRepository userRepository;

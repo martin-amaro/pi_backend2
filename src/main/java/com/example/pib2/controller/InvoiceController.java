@@ -15,8 +15,11 @@ import com.example.pib2.model.dto.InvoiceRequest;
 import com.example.pib2.model.entity.Invoice;
 import com.example.pib2.service.InvoiceService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
-@RequestMapping("/api/invoices") // URL base para todas las llamadas a facturas
+@RequestMapping("/api/invoices")
+@Tag(name = "Gestión de facturas(Invoices)", description = "Endpoints para la gestión completa de facturas de venta (creación, consulta, actualización de estado).")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
