@@ -33,4 +33,12 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return false;
     }
+
+    @Override
+    public Category createCategory(String name, Business business) {
+        Category category = new Category();
+        category.setName(name);
+        category.setBusiness(business);
+        return categoryRepository.save(category);
+    }
 }

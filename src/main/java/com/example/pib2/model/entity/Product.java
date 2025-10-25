@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +26,7 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -44,10 +47,12 @@ public class Product {
     // Relación con productos
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = true)
+    @JsonIgnore
     private Category category;
 
     @ManyToOne
     @JoinColumn(name = "business_id", nullable = false)
+    @JsonIgnore
     private Business business;
     
 

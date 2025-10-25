@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 // import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.Product;
 import com.example.pib2.model.entity.User;
 import com.example.pib2.model.entity.UserRole;
+import com.example.pib2.repository.ProductRepository;
 import com.example.pib2.service.ImageService;
 // import com.example.pib2.repository.UserRepository;
 // import com.example.pib2.service.BusinessService;
@@ -42,13 +44,30 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private ProductRepository productRepository;
+
+    @GetMapping
+    public ResponseEntity<?> getAllProducts() {
+        try {
+            User user = AuthUtils.getCurrentUser();
+            Business business = user.getBusiness();
+
+            List<Product> products = productRepository.findByBusiness(business);
+            return ResponseEntity.ok(products);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createProduct(
             @RequestPart("product") @Valid ProductRequestDTO request,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         try {
             User user = AuthUtils.getCurrentUser();
-            System.out.println("user: " + user.getRole());
             AuthUtils.checkPermissions(user, List.of(UserRole.ADMIN));
 
             Business business = user.getBusiness();

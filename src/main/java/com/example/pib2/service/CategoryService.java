@@ -10,4 +10,5 @@ public interface CategoryService {
     List<Category> getCategoriesByBusiness(Business business);
     Optional<Category> getCategoryById(Long id);
     boolean delete(Long id);
+    Category createCategory(String name, Business business);
 }
