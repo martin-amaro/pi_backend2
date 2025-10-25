@@ -64,6 +64,7 @@ public class SecurityConfig {
         // config.addAllowedOriginPattern("*");
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
+                "http://localhost:3000",
                 "http://192.168.1.4:5173",
                 "https://pi-web2.vercel.app"));
 

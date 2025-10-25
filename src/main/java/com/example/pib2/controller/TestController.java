@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.pib2.model.entity.User;
 import com.example.pib2.service.UserService;
 
-
 @RestController
 @RequestMapping("/test")
 public class TestController {
