@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.pib2.model.dto.ProductRequestDTO;
@@ -95,34 +97,18 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.count();
     }
 
-    // @Override
-    // public Product createProductWithImages(ProductRequestDTO request,
-    // MultipartFile[] images, Business business)
-    // throws IOException {
+    @Override
+    public Page<Product> searchProducts(Business business, String query, Pageable pageable) {
+        // Limpia la consulta y la convierte en minúsculas
+        String search = query == null ? "" : query.trim().toLowerCase();
 
-    // Product product = new Product();
-    // product.setName(request.getName());
-    // product.setDescription(request.getDescription());
-    // // product.setType(request.getType());
-    // product.setPrice(request.getPrice());
-    // product.setBusiness(business);
+        // Si no hay query, solo devuelve todos los productos del negocio
+        if (search.isEmpty()) {
+            return productRepository.findByBusiness(business, pageable);
+        }
 
-    // product = productRepository.save(product);
-
-    // if (images != null && images.length > 0) {
-    // for (MultipartFile file : images) {
-    // String url = imageService.uploadFile(file);
-
-    // Image image = new Image();
-    // image.setBusiness(business);
-    // image.setProduct(product);
-    // image.setUrl(url);
-
-    // imageRepository.save(image);
-    // }
-    // }
-
-    // return product;
-    // }
+        // Caso contrario, busca productos que coincidan con el texto
+        return productRepository.searchByBusinessAndQuery(business, search, pageable);
+    }
 
 }
