@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,7 @@ import com.example.pib2.service.impl.ProductServiceImpl;
 import com.example.pib2.util.AuthUtils;
 
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/products")
@@ -55,6 +59,36 @@ public class ProductController {
 
             List<Product> products = productRepository.findByBusiness(business);
             return ResponseEntity.ok(products);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchProducts(
+            @RequestParam(required = false, defaultValue = "") String query,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+
+        try {
+            User user = AuthUtils.getCurrentUser();
+            Business business = user.getBusiness();
+
+            Pageable pageable = PageRequest.of(page - 1, size);
+            Page<Product> productPage = productService.searchProducts(business, query, pageable);
+
+            Map<String, Object> result = Map.of(
+                    "content", productPage.getContent(),
+                    "currentPage", productPage.getNumber() + 1,
+                    "totalPages", productPage.getTotalPages(),
+                    "totalItems", productPage.getTotalElements(),
+                    "query", query
+                    );
+
+
+            return ResponseEntity.ok(result);
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

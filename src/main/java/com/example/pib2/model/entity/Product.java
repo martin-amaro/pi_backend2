@@ -54,6 +54,9 @@ public class Product {
     @JoinColumn(name = "business_id", nullable = false)
     @JsonIgnore
     private Business business;
-    
+
+    public Long getCategoryId() {
+        return category != null ? category.getId() : null;
+    }
 
 }
