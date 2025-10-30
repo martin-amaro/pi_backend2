@@ -12,8 +12,10 @@ import com.example.pib2.model.dto.ProductRequestDTO;
 import com.example.pib2.model.dto.ProductResponseDTO;
 import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.Category;
+import com.example.pib2.model.entity.Image;
 import com.example.pib2.model.entity.Product;
 import com.example.pib2.repository.CategoryRepository;
+import com.example.pib2.repository.ImageRepository;
 // import com.example.pib2.repository.ImageRepository;
 import com.example.pib2.repository.ProductRepository;
 // import com.example.pib2.service.ImageService;
@@ -33,8 +35,8 @@ public class ProductServiceImpl implements ProductService {
     // @Autowired
     // private ImageService imageService;
 
-    // @Autowired
-    // private ImageRepository imageRepository;
+    @Autowired
+    private ImageRepository imageRepository;
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -45,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
+        product.setActive(dto.isActive());
         product.setStock(dto.getStock());
         product.setBusiness(business);
 
@@ -59,17 +62,51 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
+    @Override
+    public Product updateProduct(Product product, ProductRequestDTO dto, Business business) {
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+        product.setStock(dto.getStock());
+        product.setActive(dto.isActive());
+        product.setBusiness(business);
+
+        if (dto.getCategoryId() != null) {
+            Category category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+            product.setCategory(category);
+        } else {
+            product.setCategory(null);
+        }
+
+        return productRepository.save(product);
+    }
+
     // Mapper interno para uso desde el controlador
+    @Override
     public ProductResponseDTO mapToDTO(Product product) {
-        ProductResponseDTO dto = new ProductResponseDTO();
-        dto.setId(product.getId());
-        dto.setName(product.getName());
-        dto.setDescription(product.getDescription());
-        dto.setPrice(product.getPrice());
-        dto.setStock(product.getStock());
-        dto.setCategoryName(product.getCategory() != null ? product.getCategory().getName() : null);
-        dto.setBusinessName(product.getBusiness().getName());
-        return dto;
+        String thumbnailUrl = imageRepository
+                .findFirstByProductAndMainTrue(product)
+                .map(Image::getUrl)
+                .orElse(null);
+
+        List<String> imageUrls = imageRepository.findByProduct(product)
+                .stream()
+                .map(Image::getUrl)
+                .toList();
+
+        return new ProductResponseDTO(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock(),
+                product.getCategoryId(),
+                product.isActive(),
+                thumbnailUrl,
+                imageUrls,
+                product.getCreatedAt(),
+                product.getUpdatedAt());
     }
 
     @Override
@@ -82,10 +119,7 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(id);
     }
 
-    @Override
-    public Product updateProduct(Product producto) {
-        return productRepository.save(producto);
-    }
+   
 
     @Override
     public void deleteProduct(Long id) {
@@ -98,17 +132,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<Product> searchProducts(Business business, String query, Pageable pageable) {
-        // Limpia la consulta y la convierte en minúsculas
+    public Page<Product> searchProducts(Business business, String query, Long categoryId, Pageable pageable) {
         String search = query == null ? "" : query.trim().toLowerCase();
-
-        // Si no hay query, solo devuelve todos los productos del negocio
-        if (search.isEmpty()) {
-            return productRepository.findByBusiness(business, pageable);
-        }
-
-        // Caso contrario, busca productos que coincidan con el texto
-        return productRepository.searchByBusinessAndQuery(business, search, pageable);
+        return productRepository.searchProductsDynamic(business, search, categoryId, pageable);
     }
 
 }

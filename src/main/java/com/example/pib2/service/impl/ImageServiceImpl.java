@@ -29,9 +29,6 @@ public class ImageServiceImpl implements ImageService {
     @Value("${imagekit.url}")
     private String urlEndpoint;
 
-
-
-
     @Autowired
     ImageRepository imageRepository;
 
@@ -40,52 +37,60 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public void saveImageForProduct(String imageUrl, Product product) {
+    public void saveImageForProduct(String imageUrl, String fileId, Product product, boolean isMain) {
         Image image = new Image();
         image.setUrl(imageUrl);
+        image.setFileId(fileId);
         image.setProduct(product);
         image.setBusiness(product.getBusiness());
+        image.setMain(isMain);
         imageRepository.save(image);
     }
 
     @Override
     public Map<String, Object> uploadFile(MultipartFile file) {
-
-        System.out.println("Public Key: " + publicKey);
-        System.out.println("Private Key: " + privateKey);
-        System.out.println("URL Endpoint: " + urlEndpoint);
-
         try {
-
-
-            // String publicKey = "public_mRv9nAFKwonwRKabZb5ZDFjScFA=";
-            // String privateKey = "private_fD8ddXtdssDRScgcqHxxdf9nm0o=";
-            // String urlEndpoint = "https://ik.imagekit.io/scritpal";
-
             ImageKit imageKit = ImageKit.getInstance();
             Configuration config = new Configuration(publicKey, privateKey, urlEndpoint);
             imageKit.setConfig(config);
+
             byte[] fileBytes = file.getBytes();
-
-            // sube una imagen remota (URL pública)
-            FileCreateRequest request = new FileCreateRequest(
-                    fileBytes,
-                    // "https://ik.imagekit.io/ikmedia/red_dress_woman.jpeg", // URL de la imagen
-                    // original
-                    // "mifoto.jpg" // nombre que tendrá en tu ImageKit
-                    file.getOriginalFilename());
-
+            FileCreateRequest request = new FileCreateRequest(fileBytes, file.getOriginalFilename());
             Result result = imageKit.upload(request);
+
             return Map.of(
                     "success", true,
                     "fileName", result.getName(),
                     "fileType", file.getContentType(),
-                    "uploaded_url", result.getUrl());
+                    "uploaded_url", result.getUrl(),
+                    "fileId", result.getFileId());
 
         } catch (Exception e) {
             return Map.of(
                     "success", false,
                     "error", e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteImageByUrl(String imageUrl, Product product) {
+        Image image = imageRepository.findByUrlAndProduct(imageUrl, product);
+
+        if (image != null) {
+            try {
+                ImageKit imageKit = ImageKit.getInstance();
+                Configuration config = new Configuration(publicKey, privateKey, urlEndpoint);
+                imageKit.setConfig(config);
+
+                // borrar en ImageKit
+                imageKit.deleteFile(image.getFileId());
+
+                // borrar en DB
+                imageRepository.delete(image);
+
+            } catch (Exception e) {
+                System.err.println("Error al eliminar imagen en ImageKit: " + e.getMessage());
+            }
         }
     }
 }

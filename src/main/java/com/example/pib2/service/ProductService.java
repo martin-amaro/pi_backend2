@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.example.pib2.model.dto.ProductRequestDTO;
+import com.example.pib2.model.dto.ProductResponseDTO;
 import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.Product;
 
@@ -14,15 +15,19 @@ public interface ProductService {
 
     Product createProduct(ProductRequestDTO dto, Business business);
 
+    Product updateProduct(Product product, ProductRequestDTO dto, Business business);
+
     List<Product> getAll();
 
     Optional<Product> findById(Long id);
 
-    Product updateProduct(Product producto);
-
+   
     void deleteProduct(Long id);
 
     long countProducts();
 
-    Page<Product> searchProducts(Business business, String query, Pageable pageable);
+    ProductResponseDTO mapToDTO(Product product);
+
+    Page<Product> searchProducts(Business business, String query, Long categoryId, Pageable pageable);
+
 }

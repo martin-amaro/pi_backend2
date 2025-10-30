@@ -10,9 +10,10 @@ import com.example.pib2.model.entity.Product;
 public interface ImageService {
 
     void save(Image image);
-    void saveImageForProduct(String imageUrl, Product product);
+    void saveImageForProduct(String imageUrl, String fileId, Product product, boolean isMain);
 
     Map<String, Object> uploadFile(MultipartFile file);
+    void deleteImageByUrl(String imageUrl, Product product);
 
     
 }

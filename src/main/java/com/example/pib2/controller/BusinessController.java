@@ -162,6 +162,8 @@ public class BusinessController {
         return ResponseEntity.ok(response);
     }
 
+    
+
     @PostMapping("/staff")
     public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequestDTO request,
             Authentication authentication) {
@@ -203,7 +205,6 @@ public class BusinessController {
 
             User user = targetUser.get();
 
-
             if (!business.getId().equals(user.getBusiness().getId())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Usuario no pertenece al negocio."));
@@ -223,7 +224,5 @@ public class BusinessController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
-
-
 
 }

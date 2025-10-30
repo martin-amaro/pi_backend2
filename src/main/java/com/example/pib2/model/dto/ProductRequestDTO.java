@@ -1,5 +1,7 @@
 package com.example.pib2.model.dto;
 
+import java.util.List;
+
 // import java.util.Locale.Category;
 
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +19,8 @@ public class ProductRequestDTO {
     private Integer stock;
     private boolean active;
     private Long categoryId;
+    private Integer thumbIndex;
+    private List<String> removedImages;
 
     // @NotNull(message = "La categoría es obligatoria")
 }

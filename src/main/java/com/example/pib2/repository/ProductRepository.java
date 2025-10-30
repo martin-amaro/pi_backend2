@@ -12,6 +12,7 @@ import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
     List<Product> findByBusiness(Business business);
 
     Page<Product> findByBusiness(Business business, Pageable pageable);
@@ -19,10 +20,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("""
         SELECT p FROM Product p
         WHERE p.business = :business
-          AND (LOWER(p.name) LIKE %:query%
-               OR LOWER(p.description) LIKE %:query%)
+        AND (
+            :categoryId IS NULL
+            OR (p.category IS NOT NULL AND p.category.id = :categoryId)
+        )
+        AND (
+            :query = ''
+            OR LOWER(p.name) LIKE %:query%
+            OR LOWER(p.description) LIKE %:query%
+        )
+        ORDER BY p.createdAt DESC
     """)
-    Page<Product> searchByBusinessAndQuery(@Param("business") Business business,
-                                           @Param("query") String query,
-                                           Pageable pageable);
+    Page<Product> searchProductsDynamic(
+            @Param("business") Business business,
+            @Param("query") String query,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable);
 }

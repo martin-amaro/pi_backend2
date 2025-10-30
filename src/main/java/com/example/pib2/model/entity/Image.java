@@ -29,19 +29,25 @@ public class Image {
     @Column(nullable = false)
     private String url;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Column(name = "file_id")
+    private String fileId;
 
     @ManyToOne
     @JoinColumn(name = "business_id", nullable = false)
     @JsonIgnore
     private Business business;
 
+    @Column(nullable = false)
+    private boolean main = false;
+
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     @JsonIgnore
     private Product product;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
