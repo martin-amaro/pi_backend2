@@ -48,11 +48,14 @@ public class DataController {
 
         // Categorias
         Category bebidas = new Category();
-        bebidas.setName("Bebidas");
+        bebidas.setName("Bebidas 2");
+        bebidas.setBusiness(business);
         categoryRepository.save(bebidas);
 
         Category aseo = new Category();
-        aseo.setName("Aseo");
+        aseo.setName("Aseo 2");
+        aseo.setBusiness(business);
+
         categoryRepository.save(aseo);
 
         // Crear productos
