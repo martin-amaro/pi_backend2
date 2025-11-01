@@ -1,6 +1,7 @@
 package com.example.pib2.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -21,7 +22,6 @@ public interface ProductService {
 
     Optional<Product> findById(Long id);
 
-   
     void deleteProduct(Long id);
 
     long countProducts();
@@ -29,5 +29,7 @@ public interface ProductService {
     ProductResponseDTO mapToDTO(Product product);
 
     Page<Product> searchProducts(Business business, String query, Long categoryId, Pageable pageable);
+
+    Map<String, Object> deleteMultiple(List<Long> ids);
 
 }

@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.pib2.model.entity.Business;
 import com.example.pib2.model.entity.Category;
 import com.example.pib2.model.entity.Product;
-import com.example.pib2.model.entity.User;
+import com.example.pib2.model.entity.UserRole;
 
-import com.example.pib2.repository.BusinessRepository;
-import com.example.pib2.repository.CategoryRepository;
-import com.example.pib2.repository.ProductRepository;
-import com.example.pib2.repository.UserRepository;
+import com.example.pib2.service.SeederService;
+
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -19,72 +19,130 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequestMapping("/seed")
 public class DataController {
 
-
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private BusinessRepository businessRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    DataController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private SeederService seederService;
 
     @GetMapping
     public String injectData() {
 
+
         // Business
-        Business business = new Business();
-        business.setName("Tienda Central");
-        business.setAddress("Calle 123");
-        businessRepository.save(business);
-
-        // Categorias
-        Category bebidas = new Category();
-        bebidas.setName("Bebidas 2");
-        bebidas.setBusiness(business);
-        categoryRepository.save(bebidas);
-
-        Category aseo = new Category();
-        aseo.setName("Aseo 2");
-        aseo.setBusiness(business);
-
-        categoryRepository.save(aseo);
-
-        // Crear productos
-        Product coca = new Product();
-        coca.setName("Coca Cola");
-        coca.setDescription("Gaseosa de 1.5L");
-        coca.setPrice(4500.0);
-        coca.setStock(50);
-        coca.setActive(true);
-        coca.setCategory(bebidas);
-        coca.setBusiness(business);
-        productRepository.save(coca);
-
-        Product escoba = new Product();
-        escoba.setName("Escoba");
-        escoba.setDescription("Escoba de cerdas suaves");
-        escoba.setPrice(8000.0);
-        escoba.setStock(20);
-        escoba.setActive(true);
-        escoba.setCategory(aseo);
-        escoba.setBusiness(business);
-        productRepository.save(escoba);
+        Business business = seederService.createBusiness("Insignia Indumentaria", "Av 44. Diagonal 66 - 58");
+        seederService.createSubscription("pro", business);
 
         // User
-        User user1 = new User();
-        user1.setName("Martin Amaro");
-        user1.setEmail("martin@gmail.com");
-        user1.setPassword("123456");
-        user1.setBusiness(business);
-        userRepository.save(user1);
+        seederService.createUser("Juan Restrepo", "admin@insignia.com", "ADMIN2025", UserRole.ADMIN,
+                business);
+        seederService.createUser("Miguel Gonzáles", "miguel@insignia.com", "123456", UserRole.USER,
+                business);
+
+        // Categories
+        Category category1 = seederService.createCategory("Calzado", "Zapatos y botas", business);
+        Category category2 = seederService.createCategory("Camisas", "Camisas, sudaderas, busos", business);
+        Category category3 = seederService.createCategory("Sombreros y gorros", "Sombrero, gorros, bandanas", business);
+
+        // Products - Calzado
+        Product product1 = seederService.createProduct(
+                "Nike Air Max",
+                "Descubre la combinación perfecta de **estilo icónico y comodidad superior** con las Nike Air Max. Su revolucionaria **unidad Air visible** te ofrece una amortiguación excepcional que absorbe el impacto.",
+                350000.0,
+                category1,
+                business);
+
+        Product product2 = seederService.createProduct(
+                "Adidas Ultraboost",
+                "Las Adidas Ultraboost fusionan tecnología y diseño moderno. Su suela **Boost** proporciona un retorno de energía impresionante en cada paso.",
+                420000.0,
+                category1,
+                business);
+
+        Product product3 = seederService.createProduct(
+                "Botas Timberland Classic",
+                "Resistentes al agua y con suela antideslizante, las **Timberland Classic** son ideales para aventuras urbanas o al aire libre.",
+                480000.0,
+                category1,
+                business);
+
+        Product product4 = seederService.createProduct(
+                "Converse Chuck Taylor",
+                "Un ícono atemporal. Las **Chuck Taylor All Star** se reinventan para adaptarse a cualquier estilo sin perder su esencia.",
+                270000.0,
+                category1,
+                business);
+
+        // Products - Camisas
+        Product product5 = seederService.createProduct(
+                "Camisa Oxford Azul",
+                "La clásica **camisa Oxford** de algodón ofrece una textura suave y un acabado elegante para cualquier ocasión formal o casual.",
+                180000.0,
+                category2,
+                business);
+
+        Product product6 = seederService.createProduct(
+                "Sudadera Essentials Negra",
+                "Sudadera **oversize** con capucha, confeccionada en algodón premium. Cómoda, versátil y con un diseño minimalista.",
+                220000.0,
+                category2,
+                business);
+
+        Product product7 = seederService.createProduct(
+                "Buso Deportivo Nike Dri-FIT",
+                "Diseñado con tecnología **Dri-FIT**, este buso mantiene el cuerpo seco durante entrenamientos intensos.",
+                190000.0,
+                category2,
+                business);
+
+        Product product8 = seederService.createProduct(
+                "Camisa de Lino Blanca",
+                "Fresca y ligera, la **camisa de lino blanca** es la elección ideal para climas cálidos y eventos relajados.",
+                200000.0,
+                category2,
+                business);
+
+        // Products - Sombreros y gorros
+        Product product9 = seederService.createProduct(
+                "Sombrero Fedora",
+                "El **Fedora clásico** aporta un toque de elegancia y distinción a cualquier look casual o formal.",
+                150000.0,
+                category3,
+                business);
+
+        Product product10 = seederService.createProduct(
+                "Gorra New Era 9FIFTY",
+                "La **New Era 9FIFTY** combina un diseño moderno con materiales duraderos. Perfecta para el día a día.",
+                130000.0,
+                category3,
+                business);
+
+        Product product11 = seederService.createProduct(
+                "Gorro de Lana Unisex",
+                "Te mantiene abrigado con estilo. El **gorro de lana unisex** es ideal para días fríos y atuendos casuales.",
+                90000.0,
+                category3,
+                business);
+
+        Product product12 = seederService.createProduct(
+                "Bandana Estampada",
+                "Versátil y con **diseños vibrantes**, la bandana estampada puede usarse como accesorio para la cabeza o el cuello.",
+                60000.0,
+                category3,
+                business);
+
+        // Sales
+        seederService.createSale(LocalDateTime.now().minusDays(1), 2, 350000.0, product1, business);
+        seederService.createSale(LocalDateTime.now().minusDays(3), 1, 420000.0, product2, business);
+        seederService.createSale(LocalDateTime.now().minusDays(5), 3, 480000.0, product3, business);
+        seederService.createSale(LocalDateTime.now().minusDays(2), 1, 270000.0, product4, business);
+
+        seederService.createSale(LocalDateTime.now().minusDays(7), 4, 180000.0, product5, business);
+        seederService.createSale(LocalDateTime.now().minusDays(4), 2, 220000.0, product6, business);
+        seederService.createSale(LocalDateTime.now().minusDays(1), 3, 190000.0, product7, business);
+        seederService.createSale(LocalDateTime.now().minusDays(6), 1, 200000.0, product8, business);
+
+        seederService.createSale(LocalDateTime.now().minusDays(2), 1, 150000.0, product9, business);
+        seederService.createSale(LocalDateTime.now().minusDays(3), 2, 130000.0, product10, business);
+        seederService.createSale(LocalDateTime.now().minusDays(5), 5, 90000.0, product11, business);
+        seederService.createSale(LocalDateTime.now().minusDays(1), 6, 60000.0, product12, business);
 
         return "Datos de prueba insertados correctamente.";
     }
