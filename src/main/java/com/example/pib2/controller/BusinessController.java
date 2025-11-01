@@ -38,12 +38,18 @@ import com.example.pib2.service.BusinessService;
 import com.example.pib2.service.UserService;
 import com.example.pib2.util.AuthUtils;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/business")
+@Tag(name = "Negocios", description = "Gestión de la información y configuración de la entidad de negocio asociada al usuario.")
+@SecurityRequirement(name = "bearerAuth")
 public class BusinessController {
 
     @Autowired
@@ -58,7 +64,11 @@ public class BusinessController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PostMapping("/me")
+    @GetMapping("/me")
+    @Operation(summary = "Obtener datos del negocio", description = "Recupera la información del negocio asociado al usuario autenticado.", responses = {
+            @ApiResponse(responseCode = "200", description = "Datos del negocio devueltos."),
+            @ApiResponse(responseCode = "401", description = "No autenticado o negocio no encontrado."),
+    })
     public ResponseEntity<?> getBusiness() {
         try {
             Business business = AuthUtils.getCurrentBusiness();
@@ -71,6 +81,12 @@ public class BusinessController {
     }
 
     @PatchMapping("/me")
+    @Operation(summary = "Actualización parcial del negocio", description = "Actualiza campos específicos del negocio (nombre, dirección, etc.).", responses = {
+            @ApiResponse(responseCode = "200", description = "Negocio actualizado con éxito."),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida o error de validación."),
+            @ApiResponse(responseCode = "404", description = "Negocio no encontrado."),
+            @ApiResponse(responseCode = "401", description = "No autenticado."),
+    })
     public ResponseEntity<?> patchAuthenticatedBusiness(@RequestBody BussinesPatchDTO dto) {
 
         try {
@@ -95,32 +111,36 @@ public class BusinessController {
     }
 
     @GetMapping("/staff")
-    public ResponseEntity<?> getUsersFromBusiness(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autenticado");
+    @Operation(summary = "Listar empleados (Staff)", description = "Obtiene la lista completa de empleados (usuarios) asociados al negocio. Requiere rol ADMIN.", responses = {
+            @ApiResponse(responseCode = "200", description = "Lista de empleados devuelta."),
+            @ApiResponse(responseCode = "401", description = "No autenticado."),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado (no es ADMIN)."),
+    })
+    public ResponseEntity<?> getUsersFromBusiness() {
+        try {
+            User user = AuthUtils.getCurrentUser();
+            Business business = AuthUtils.getCurrentBusiness();
+
+            AuthUtils.checkPermissions(user, List.of(UserRole.ADMIN));
+
+            List<User> users = userRepository.findByBusiness(business);
+            List<UserDTO> dtos = users.stream()
+                    .map(u -> new UserDTO(u.getId(), u.getName(), u.getEmail(), u.getRole()))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         }
-
-        User currentUser = (User) authentication.getPrincipal();
-
-        if (currentUser.getRole() != UserRole.ADMIN) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Solo administradores pueden acceder");
-        }
-
-        Business business = currentUser.getBusiness();
-
-        if (business == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No se encontró la empresa asociada al usuario");
-        }
-
-        List<User> users = userRepository.findByBusiness(business);
-        List<UserDTO> dtos = users.stream()
-                .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getRole()))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/staff/search")
+    @Operation(summary = "Buscar y paginar empleados", description = "Busca empleados por nombre o email dentro del negocio y devuelve resultados paginados. Requiere rol ADMIN.", responses = {
+            @ApiResponse(responseCode = "200", description = "Resultados de la búsqueda paginados."),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado (no es ADMIN)."),
+    })
     public ResponseEntity<?> searchUsersFromBusiness(
             @RequestParam(required = false, defaultValue = "") String query,
             @RequestParam(required = false, defaultValue = "1") int page,
@@ -141,7 +161,7 @@ public class BusinessController {
 
         if (business == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("No se encontró la empresa asociada al usuario");
+                    .body("No se encontró el negocio asociado al usuario");
         }
 
         // ajusta para que la página del front (1) coincida con la del backend (0)
@@ -162,9 +182,13 @@ public class BusinessController {
         return ResponseEntity.ok(response);
     }
 
-    
-
     @PostMapping("/staff")
+    @Operation(summary = "Crear nuevo empleado", description = "Registra un nuevo usuario/empleado con su rol (MOD o USER) asociado al negocio. Requiere rol ADMIN.", responses = {
+            @ApiResponse(responseCode = "200", description = "Empleado creado exitosamente."),
+            @ApiResponse(responseCode = "409", description = "Conflicto. El correo ya está en uso."),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado (no es ADMIN)."),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos."),
+    })
     public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequestDTO request,
             Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
@@ -192,6 +216,11 @@ public class BusinessController {
     }
 
     @DeleteMapping("/staff/{id}")
+    @Operation(summary = "Eliminar empleado", description = "Elimina un empleado por su ID, asegurando que pertenezca al negocio del ADMIN. Requiere rol ADMIN.", responses = {
+            @ApiResponse(responseCode = "204", description = "Empleado eliminado exitosamente (No Content)."),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado."),
+            @ApiResponse(responseCode = "401", description = "No autenticado o el usuario no pertenece al negocio."),
+    })
     public ResponseEntity<?> deleteStaff(@Valid @PathVariable Long id) {
 
         try {

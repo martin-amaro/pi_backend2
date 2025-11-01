@@ -1,12 +1,15 @@
 package com.example.pib2.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.pib2.model.dto.ProductRequestDTO;
 import com.example.pib2.model.dto.ProductResponseDTO;
@@ -18,6 +21,7 @@ import com.example.pib2.repository.CategoryRepository;
 import com.example.pib2.repository.ImageRepository;
 // import com.example.pib2.repository.ImageRepository;
 import com.example.pib2.repository.ProductRepository;
+import com.example.pib2.service.ImageService;
 // import com.example.pib2.service.ImageService;
 import com.example.pib2.service.ProductService;
 
@@ -32,8 +36,8 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // @Autowired
-    // private ImageService imageService;
+    @Autowired
+    private ImageService imageService;
 
     @Autowired
     private ImageRepository imageRepository;
@@ -119,8 +123,6 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(id);
     }
 
-   
-
     @Override
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
@@ -135,6 +137,38 @@ public class ProductServiceImpl implements ProductService {
     public Page<Product> searchProducts(Business business, String query, Long categoryId, Pageable pageable) {
         String search = query == null ? "" : query.trim().toLowerCase();
         return productRepository.searchProductsDynamic(business, search, categoryId, pageable);
+    }
+
+    @Transactional
+    @Override
+    public Map<String, Object> deleteMultiple(List<Long> ids) {
+        List<Long> deleted = new ArrayList<>();
+        List<Long> notFound = new ArrayList<>();
+
+        for (Long id : ids) {
+            Optional<Product> productOpt = productRepository.findById(id);
+            if (productOpt.isPresent()) {
+                Product product = productOpt.get();
+
+                // Eliminar imágenes asociadas primero
+                List<Image> images = imageRepository.findByProduct(product);
+                for (Image img : images) {
+                    imageService.deleteImageByUrl(img.getUrl(), product);
+                    imageRepository.delete(img);
+                }
+
+                productRepository.delete(product);
+                deleted.add(id);
+            } else {
+                notFound.add(id);
+            }
+        }
+
+        return Map.of(
+                "deleted", deleted,
+                "not_found", notFound,
+                "total_requested", ids.size(),
+                "total_deleted", deleted.size());
     }
 
 }
