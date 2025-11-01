@@ -114,6 +114,8 @@ public class SubscriptionController {
         business.setSubscription(subscription);
         businessRepository.save(business);
 
+        System.out.println("Subscription activated");
+
         return ResponseEntity.ok("Subscription activated");
     }
 
