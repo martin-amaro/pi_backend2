@@ -6,5 +6,5 @@ import com.example.pib2.model.entity.Business;
 
 
 public interface BusinessRepository extends JpaRepository<Business, Long> {
-    
+    Business findByName(String businessName);
 } 

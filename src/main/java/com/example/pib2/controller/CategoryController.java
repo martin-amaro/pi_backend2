@@ -24,10 +24,19 @@ import com.example.pib2.repository.CategoryRepository;
 import com.example.pib2.service.CategoryService;
 import com.example.pib2.util.AuthUtils;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/categories")
+@Tag(name = "Categorías", description = "Operaciones relacionadas con la gestión de categorías de negocios")
+@SecurityRequirement(name = "bearerAuth")
 public class CategoryController {
 
     @Autowired
@@ -36,6 +45,16 @@ public class CategoryController {
     @Autowired
     CategoryRepository categoryRepository;
 
+    @Operation(
+        summary = "Obtener todas las categorías",
+        description = "Devuelve una lista de todas las categorías asociadas al negocio actual del usuario autenticado.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Lista de categorías obtenida exitosamente",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Category.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado o token inválido",
+                content = @Content(mediaType = "application/json"))
+        }
+    )
     @GetMapping
     public ResponseEntity<?> getAllCategories() {
         try {
@@ -49,8 +68,25 @@ public class CategoryController {
         }
     }
 
+    @Operation(
+        summary = "Crear una nueva categoría",
+        description = "Crea una nueva categoría en el negocio actual. Solo los administradores pueden realizar esta acción.",
+        responses = {
+            @ApiResponse(responseCode = "201", description = "Categoría creada correctamente",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Category.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los datos enviados",
+                content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "No autorizado o token inválido",
+                content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Permisos insuficientes",
+                content = @Content(mediaType = "application/json"))
+        }
+    )
     @PostMapping
-    public ResponseEntity<?> createCategory(@Valid @RequestBody CategoryRequestDTO request) {
+    public ResponseEntity<?> createCategory(
+        @Parameter(description = "Datos para crear una nueva categoría", required = true)
+        @Valid @RequestBody CategoryRequestDTO request
+    ) {
         System.out.println("Creating category with name: " + request.getName());
         try {
             User user = AuthUtils.getCurrentUser();
@@ -72,13 +108,28 @@ public class CategoryController {
         }
     }
 
+    @Operation(
+        summary = "Eliminar una categoría",
+        description = "Elimina una categoría por su ID. Solo los administradores del negocio propietario pueden eliminar categorías.",
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Categoría eliminada correctamente"),
+            @ApiResponse(responseCode = "401", description = "No autorizado o token inválido",
+                content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "El usuario no tiene permiso para eliminar la categoría",
+                content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Categoría no encontrada",
+                content = @Content(mediaType = "application/json"))
+        }
+    )
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCategory(@Valid @PathVariable Long id) {
+    public ResponseEntity<?> deleteCategory(
+        @Parameter(description = "ID de la categoría a eliminar", required = true, example = "1")
+        @Valid @PathVariable Long id
+    ) {
         try {
             User user = AuthUtils.getCurrentUser();
             Business business = AuthUtils.getCurrentBusiness();
             AuthUtils.checkPermissions(user, List.of(UserRole.ADMIN));
-
 
             Optional<Category> categoryOpt = categoryService.getCategoryById(id);
             if (categoryOpt.isEmpty()) {
@@ -100,7 +151,6 @@ public class CategoryController {
             }
 
             return ResponseEntity.noContent().build();
-
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
